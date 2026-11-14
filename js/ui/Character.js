@@ -102,13 +102,13 @@ const SVG = `
   </g>
 </svg>`;
 
-export class Character {
-  static count = 0;
+let instanceCount = 0;
 
+export class Character {
   constructor(container) {
     this.el = container;
     // 한 페이지에 캐릭터가 여러 개 있어도 그라데이션·클립 ID가 겹치지 않게 한다
-    const uid = `g${++Character.count}`;
+    const uid = `g${++instanceCount}`;
     container.innerHTML = SVG.replace(/g-(body|eyeL|eyeR)(?=["\)])/g, `${uid}-$1`);
     this.q = (sel) => container.querySelector(sel);
     this.all = (sel) => [...container.querySelectorAll(sel)];

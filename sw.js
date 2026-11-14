@@ -1,5 +1,5 @@
 // 굽신 서비스 워커: 앱 셸 캐시 (오프라인에서도 화면과 기본 굴복 모드 동작)
-const CACHE = 'goopsin-v5';
+const CACHE = 'goopsin-v6';
 const ASSETS = [
   './', './index.html', './css/style.css', './manifest.json',
   './icons/icon-192.png', './icons/icon-512.png',
@@ -27,7 +27,7 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});

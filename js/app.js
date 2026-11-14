@@ -17,8 +17,18 @@ tts.load();
 const stt = createVoiceInput({ lang: 'ko-KR' });
 const acting = new EmotionEngine();
 
-const character = new Character($('char-face'));
-const homeChar = new Character($('home-char'));
+// 화면 파일(index.html)이 예전 버전으로 남아 있어도 앱이 멈추지 않도록, 자리가 없으면 만들어서 쓴다
+function charSlot(id, fallbackSelector) {
+  let el = $(id);
+  if (!el) {
+    el = document.querySelector(fallbackSelector) || document.createElement('div');
+    el.id = id;
+  }
+  el.textContent = '';
+  return el;
+}
+const character = new Character(charSlot('char-face', '.char-face'));
+const homeChar = new Character(charSlot('home-char', '.logo'));
 // 메인 화면: 건방 → 굽신을 번갈아 보여 주는 로고 캐릭터
 const HOME_LOOP = ['cocky', 'annoyed', 'nervous', 'timid', 'grovel'];
 let homeIdx = 0;

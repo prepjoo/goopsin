@@ -9,7 +9,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=6" />
 </head>
 <body>
   <!-- ===================== 메인 화면 ===================== -->
@@ -116,6 +116,19 @@
     </form>
   </dialog>
 
-  <script type="module" src="js/app.js"></script>
+  <div id="boot-error" hidden style="position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#2b1d14;color:#fff;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.5"></div>
+  <script>
+    // 앱이 멈추면 원인을 화면에 보여 준다 (문제 신고용)
+    (function () {
+      function show(msg) {
+        var el = document.getElementById('boot-error');
+        el.hidden = false;
+        el.textContent = '앱 오류: ' + msg + ' (이 문구를 캡처해서 알려 주세요. 새로고침하면 해결될 수 있어요.)';
+      }
+      window.addEventListener('error', function (e) { show((e.message || '파일을 불러오지 못함') + (e.filename ? ' @' + e.filename.split('/').pop() + ':' + e.lineno : '')); }, true);
+      window.addEventListener('unhandledrejection', function (e) { show(String(e.reason && e.reason.message || e.reason)); });
+    })();
+  </script>
+  <script type="module" src="js/app.js?v=6"></script>
 </body>
 </html>
