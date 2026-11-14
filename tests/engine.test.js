@@ -125,3 +125,38 @@ test('기본 굴복 모드: 무조건 사죄, 같은 문구 연속 반복 없음
     prev = r.text;
   }
 });
+
+test('첫 마디: 두 모드 모두 빈정거리는 대사로 먼저 말을 건다', async () => {
+  const { OPENING_LINES } = await import('../js/data/lines.js');
+  assert.ok(OPENING_LINES.includes(new BattleConversation().opening().text));
+  assert.ok(OPENING_LINES.includes(new BasicConversation().opening().text));
+});
+
+test('기세 반전: 5단계에서 "그만하자" 한마디에 크게 기세등등 (2단계 이하 + 반전 대사)', async () => {
+  const { REBOUND_LINES } = await import('../js/data/lines.js');
+  const c = new BattleConversation({ maxStage: 5 });
+  let t = T0;
+  for (let i = 0; i < 8; i++) c.respond('똑바로 사과해! 무릎 꿇고 빌어!', (t += 3000));
+  assert.equal(c.submission.stage, 5);
+  const r = c.respond('그래, 알았어. 그만하자.', (t += 3000));
+  assert.ok(r.stage <= 2, `반전 후 단계 ${r.stage}`);
+  assert.ok(REBOUND_LINES[1].includes(r.text), r.text);
+});
+
+test('무료 상한: 3단계에서 계속 몰아붙이면 버티기 대사가 섞인다', async () => {
+  const { CAP_LINES } = await import('../js/data/lines.js');
+  const c = new BattleConversation({ maxStage: 3 });
+  let t = T0;
+  const texts = [];
+  for (let i = 0; i < 10; i++) texts.push(c.respond('똑바로 사과해! 무릎 꿇고 빌어!', (t += 3000)).text);
+  assert.ok(texts.some((x) => CAP_LINES.includes(x)));
+  const c5 = new BattleConversation({ maxStage: 5 });
+  for (let i = 0; i < 12; i++) assert.ok(!CAP_LINES.includes(c5.respond('똑바로 사과해! 무릎 꿇고 빌어!', (t += 3000)).text));
+});
+
+test('녹음 파일 ID: 모든 대사에 고유 ID, 기본 모드 사죄 문구도 파일 공유', async () => {
+  const { CLIPS, CLIP_ID_BY_TEXT } = await import('../js/data/clips.js');
+  const ids = CLIPS.map((c) => c.id);
+  assert.equal(new Set(ids).size, ids.length);
+  for (const t of BASIC_APOLOGIES) assert.ok(CLIP_ID_BY_TEXT[t], t);
+});

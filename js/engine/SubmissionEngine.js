@@ -21,6 +21,8 @@ export const DEFAULTS = {
   idleDecayPerSec: 0.5,
   resetAfterMs: 120_000,     // 2분 이상 조용하면 초기화
   neutralDrift: -3,          // 중립 발화는 살짝 기세 회복
+  endReboundRatio: 0.7,      // 굴복 상태(40점+)에서 '그만하자/용서할게' 류 → 현재 점수의 70%를 한 번에 회복(반전)
+  endReboundMax: 75,
 };
 
 export function rawStage(score) {
@@ -100,7 +102,14 @@ export class SubmissionEngine {
       delta = Math.min(delta, 0) + this.opts.neutralDrift;
     }
 
-    delta = clamp(delta, -this.opts.maxDownPerTurn, this.opts.maxUpPerTurn);
+    let maxDown = this.opts.maxDownPerTurn;
+    // 기세 반전: 굴복해 있던 AI가 상대가 물러서는 순간 확 기세등등해진다 (기획서 2-2 예시)
+    if (analysis.kind === 'end' && prevScore >= 40) {
+      const rebound = Math.min(prevScore * this.opts.endReboundRatio, this.opts.endReboundMax);
+      delta = Math.min(delta, -rebound);
+      maxDown = this.opts.endReboundMax;
+    }
+    delta = clamp(delta, -maxDown, this.opts.maxUpPerTurn);
     this.score = clamp(Math.round(prevScore + delta), 0, this.maxScore);
 
     let next = this._stableStage(this.score, prevStage, false);
@@ -117,6 +126,8 @@ export class SubmissionEngine {
       direction: this.stage > prevStage ? 'up' : this.stage < prevStage ? 'down' : 'same',
       delta: this.score - prevScore,
       atCap: this.stage === this.opts.maxStage && this.score >= this.maxScore - 1,
+      limited: this.opts.maxStage < 5,
+      kind: analysis.kind,
     };
   }
 

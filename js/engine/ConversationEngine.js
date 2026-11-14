@@ -6,10 +6,9 @@
  */
 import { analyze } from './EmotionAnalyzer.js';
 import { SubmissionEngine } from './SubmissionEngine.js';
-import { ResponseGenerator, BasicApologyGenerator } from './ResponseGenerator.js';
+import { ResponseGenerator, BasicApologyGenerator, pickOpening } from './ResponseGenerator.js';
 import { EmotionEngine } from './EmotionEngine.js';
 import { STAGES } from '../data/lines.js';
-import { OPENINGS } from '../data/clips.js';
 
 export class BattleConversation {
   constructor({ maxStage = 3, rng = Math.random, analyzer = analyze } = {}) {
@@ -18,6 +17,7 @@ export class BattleConversation {
     this.responder = new ResponseGenerator({ rng });
     this.emotion = new EmotionEngine({ rng });
     this.history = [];
+    this.rng = rng;
   }
 
   setMaxStage(n) { this.submission.setMaxStage(n); }
@@ -27,12 +27,12 @@ export class BattleConversation {
     this.history = [];
   }
 
-  /** 대화 시작 시 첫 마디 */
+  /** 대화 시작 시 AI가 먼저 빈정거리며 말을 건다 */
   opening() {
     return {
-      text: OPENINGS.battle,
+      text: pickOpening(this.rng),
       stage: 1, score: 0,
-      persona: this.emotion.persona(1),
+      persona: { face: '😏', label: '빈정빈정' },
       voiceStage: 1, style: null,
     };
   }
@@ -62,10 +62,12 @@ export class BasicConversation {
   constructor({ rng = Math.random } = {}) {
     this.gen = new BasicApologyGenerator({ rng });
     this.emotion = new EmotionEngine({ rng });
+    this.rng = rng;
   }
   reset() {}
+  /** 처음엔 빈정거리다가, 사용자가 한마디만 하면 바로 굴복하는 반전 */
   opening() {
-    return { text: OPENINGS.basic, stage: 5, persona: { face: '🙇', label: '무조건 굴복' }, voiceStage: 5, style: 'grovel' };
+    return { text: pickOpening(this.rng), stage: 1, persona: { face: '😏', label: '빈정빈정' }, voiceStage: 1, style: null };
   }
   respond(userText) {
     const style = this.emotion.pickStyle(5);
@@ -76,6 +78,7 @@ export class BasicConversation {
       style,
       persona: { face: '🙇', label: '무조건 굴복' },
       voiceStage: 5,
+      direction: 'up',
     };
   }
 }

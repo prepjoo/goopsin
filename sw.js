@@ -1,5 +1,5 @@
 // 굽신 서비스 워커: 앱 셸 캐시 (오프라인에서도 화면과 기본 굴복 모드 동작)
-const CACHE = 'goopsin-v2';
+const CACHE = 'goopsin-v3';
 const ASSETS = [
   './', './index.html', './css/style.css', './manifest.json',
   './icons/icon-192.png', './icons/icon-512.png',
