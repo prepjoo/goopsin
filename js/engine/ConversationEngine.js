@@ -5,6 +5,7 @@
  * UI·음성과 분리되어 있어 Node에서도 단위 테스트할 수 있다.
  */
 import { analyze } from './EmotionAnalyzer.js';
+import { extractCues } from './RetortGenerator.js';
 import { SubmissionEngine } from './SubmissionEngine.js';
 import { ResponseGenerator, BasicApologyGenerator, pickOpening } from './ResponseGenerator.js';
 import { EmotionEngine } from './EmotionEngine.js';
@@ -41,11 +42,14 @@ export class BattleConversation {
     const analysis = this.analyzer(userText, this.history);
     const state = this.submission.update(analysis, now);
     const style = this.emotion.pickStyle(state.stage);
-    const text = this.responder.generate({ ...state, style });
+    const cues = extractCues(userText);
+    const { text, type } = this.responder.generateWithType({ ...state, style, cues });
     const turn = {
       user: userText,
       text,
       analysis,
+      cues,
+      responseType: type,
       ...state,
       style,
       stageName: STAGES[state.stage].name,

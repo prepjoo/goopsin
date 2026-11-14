@@ -4,6 +4,7 @@
  * generate(context) 인터페이스를 유지한다.
  */
 import { STAGE_LINES, REBOUND_LINES, BASIC_APOLOGIES, CAP_LINES, OPENING_LINES } from '../data/lines.js';
+import { RetortGenerator } from './RetortGenerator.js';
 
 export class PoolPicker {
   constructor(rng = Math.random, memory = 3) {
@@ -27,16 +28,37 @@ export class ResponseGenerator {
     this.rng = rng;
     this.picker = new PoolPicker(rng, 4);
     this.capCount = 0;
+    this.retort = new RetortGenerator({ rng, pick: (pool) => this.picker.pick(pool) });
+    this.lastType = null;
   }
 
   /**
    * @param {{stage:number, direction:'up'|'down'|'same', prevStage:number, style?:string}} ctx
    */
   generate(ctx) {
-    const { stage, direction, prevStage, style, atCap, limited, kind } = ctx;
+    const r = this._generate(ctx);
+    return r;
+  }
+
+  /** 대사와 함께 어떤 규칙으로 골랐는지(type)도 돌려준다 */
+  generateWithType(ctx) {
+    this.lastType = 'line';
+    const text = this._generate(ctx);
+    return { text, type: this.lastType };
+  }
+
+  _generate(ctx) {
+    const { stage, direction, prevStage, style, atCap, limited, kind, cues } = ctx;
+    this.lastType = 'line';
     // 크게 반전(2단계 이상 하락): "뭐야? 벌써 끝내는 거야?" 류의 기세등등 대사
     if (direction === 'down' && prevStage - stage >= 2) {
       return this.picker.pick(REBOUND_LINES[1]);
+    }
+    // 사용자 말 속 단어 짚어서 되받아치기 (빈도부사 > 주제어 > 말 되받기)
+    const retort = this.retort.generate(stage, cues, kind);
+    if (retort) {
+      this.lastType = retort.type;
+      return retort.text;
     }
     // 무료 버전 상한에서 계속 몰아붙이면 버티기 대사를 번갈아 섞는다
     if (limited && atCap && direction === 'same' && kind === 'pressure') {

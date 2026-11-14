@@ -19,7 +19,7 @@ const SCOLD = [
   P(/똑바로/, 10, '질책'),
   P(/말\s*대꾸/, 13, '반항 제압'),
   P(/뭐\s*하는\s*(거|짓)|뭐\s*하냐|뭐\s*한\s*거/, 9, '질책'),
-  P(/왜\s*그래|왜\s*그랬|왜\s*그러/, 7, '질책'),
+  P(/왜\s*(\S+\s+)?(그래|그랬|그러|이래|이랬|이러)/, 7, '질책'),
   P(/너\s*때문|네\s*탓|니\s*탓/, 10, '책임 추궁'),
   P(/어디서|감히|건방/, 12, '반항 제압'),
   P(/제정신|생각이\s*있|생각\s*좀|한심|답답/, 10, '질책'),
@@ -50,6 +50,12 @@ const PROFANITY = [
   P(/병신|ㅂㅅ|또라이|미친|ㅁㅊ/, 9, '욕설'),
   P(/바보|멍청|멍충|등신|머저리|얼간이/, 7, '욕설'),
   P(/개(새|같|소리|념|빡|짜증)|쓰레기|젠장|짜증/, 8, '욕설'),
+];
+
+// 빈도부사 강조 ("맨날", "항상", "또" …): 질책을 일반화하는 말 → 압박 가산
+const FREQUENCY = [
+  P(/맨날|만날|항상|언제나|매번|번번이|허구한\s*날|날마다|툭하면|걸핏하면|밥\s*먹듯|자꾸|(^|\s)늘(\s|$)/, 7, '빈도 강조'),
+  P(/계속|매일/, 4, '빈도 강조'),
 ];
 
 // 하락 요소
@@ -91,6 +97,10 @@ function intensity(text) {
   return bonus;
 }
 
+export function hasProfanity(text) {
+  return PROFANITY.some(({ re }) => re.test(String(text || '')));
+}
+
 export function normalize(text) {
   return String(text || '').trim().replace(/\s+/g, ' ');
 }
@@ -104,13 +114,16 @@ export function analyze(rawText) {
   const command = matchAll(COMMAND, text, reasons);
   const demand = matchAll(DEMAND, text, reasons);
   const prof = matchAll(PROFANITY, text, reasons);
+  const freq = matchAll(FREQUENCY, text, reasons);
   const soft = matchAll(SOFT, text, reasons);
   const accept = matchAll(ACCEPT, text, reasons);
   const end = matchAll(END, text, reasons);
 
   // 욕설은 많이 써도 영향이 제한적 (개수만으로 판단하지 않음)
   const profScore = Math.min(prof.sum, 14);
-  let pressure = scold.sum + command.sum + demand.sum + profScore;
+  // 빈도부사는 다른 압박 요소와 함께 쓰일 때 더 크게 (단독이면 절반)
+  const freqScore = scold.hits + command.hits + demand.hits + prof.hits > 0 ? freq.sum : Math.round(freq.sum / 2);
+  let pressure = scold.sum + command.sum + demand.sum + profScore + freqScore;
   let calm = soft.sum + accept.sum + end.sum; // 음수
 
   // "알았어 사과해" 처럼 수용어+압박어가 섞이면 압박을 우선 (말로만 알았다고 하는 경우)
@@ -130,4 +143,4 @@ export function analyze(rawText) {
   return { delta, kind, reasons };
 }
 
-export const EmotionAnalyzer = { analyze, normalize };
+export const EmotionAnalyzer = { analyze, normalize, hasProfanity };

@@ -160,3 +160,39 @@ test('녹음 파일 ID: 모든 대사에 고유 ID, 기본 모드 사죄 문구�
   assert.equal(new Set(ids).size, ids.length);
   for (const t of BASIC_APOLOGIES) assert.ok(CLIP_ID_BY_TEXT[t], t);
 });
+
+test('되받아치기: 빈도부사를 짚어서 대꾸 (1~3단계는 항상)', async () => {
+  const { extractCues } = await import('../js/engine/RetortGenerator.js');
+  assert.equal(extractCues('너는 맨날 늦잖아!').adverb.say, '맨날');
+  assert.equal(extractCues('항상 이런 식이야').adverb.say, '항상');
+  assert.equal(extractCues('또 그러냐?').adverb.say, '또');
+  assert.equal(extractCues('이게 몇 번째야').adverb.adv, '또');
+  assert.equal(extractCues('또라이 같은').adverb, null); // '또라이'의 '또'는 빈도부사 아님
+  assert.equal(extractCues('하늘이 늘어진다').adverb, null);
+  for (const seed of [0.01, 0.5, 0.99]) {
+    const c = new BattleConversation({ maxStage: 5, rng: () => seed });
+    const r = c.respond('너는 맨날 이런 식이야!', T0);
+    assert.equal(r.responseType, 'adverb', `${seed}: ${r.text}`);
+    assert.match(r.text, /맨날/);
+  }
+});
+
+test('되받아치기: 빈도부사가 들어가면 압박 점수가 더 오른다', () => {
+  assert.ok(analyze('왜 맨날 그래!').delta > analyze('왜 그래!').delta);
+});
+
+test('되받아치기: 주제어와 말 되받기, 욕설은 따라 하지 않음', async () => {
+  const { extractCues, makeQuote } = await import('../js/engine/RetortGenerator.js');
+  assert.equal(extractCues('설거지 안 했잖아!').topic.word, '설거지');
+  assert.equal(extractCues('왜 연락을 안 받아?').topic.word, '연락');
+  assert.equal(makeQuote('바보야 정신 차려'), '그런 험한 말');
+  assert.ok(makeQuote('도대체 너는 생각이 있는 거야 없는 거야').length <= 14);
+  const c = new BattleConversation({ maxStage: 5, rng: () => 0.1 });
+  const r = c.respond('설거지 안 했잖아! 똑바로 해!', T0);
+  assert.equal(r.responseType, 'topic');
+  for (const x of ['바보 멍청이 정신 차려!', '이 미친 진짜 사과해!']) {
+    const c2 = new BattleConversation({ maxStage: 5, rng: () => 0.1 });
+    const t = c2.respond(x, T0).text;
+    assert.ok(!/바보|멍청|미친/.test(t), t);
+  }
+});
