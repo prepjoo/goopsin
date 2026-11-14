@@ -3,13 +3,16 @@ import { SettingsManager } from './SettingsManager.js';
 import { ModeManager, MODES } from './ModeManager.js';
 import { createVoiceInput } from './voice/SpeechRecognition.js';
 import { createSpeechOutput } from './voice/SpeechOutput.js';
+import { ClipSpeechOutput } from './voice/ClipSpeechOutput.js';
 import { EmotionEngine } from './engine/EmotionEngine.js';
 
 const $ = (id) => document.getElementById(id);
 
 const settings = new SettingsManager();
 const modes = new ModeManager(settings);
-const tts = createSpeechOutput({ lang: 'ko-KR' });
+// 녹음 파일(audio/*.mp3)이 있으면 우선 재생, 없으면 기기 내장 음성
+const tts = new ClipSpeechOutput(createSpeechOutput({ lang: 'ko-KR' }));
+tts.load();
 const stt = createVoiceInput({ lang: 'ko-KR' });
 const acting = new EmotionEngine();
 

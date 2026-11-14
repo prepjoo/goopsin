@@ -9,6 +9,7 @@ import { SubmissionEngine } from './SubmissionEngine.js';
 import { ResponseGenerator, BasicApologyGenerator } from './ResponseGenerator.js';
 import { EmotionEngine } from './EmotionEngine.js';
 import { STAGES } from '../data/lines.js';
+import { OPENINGS } from '../data/clips.js';
 
 export class BattleConversation {
   constructor({ maxStage = 3, rng = Math.random, analyzer = analyze } = {}) {
@@ -29,7 +30,7 @@ export class BattleConversation {
   /** 대화 시작 시 첫 마디 */
   opening() {
     return {
-      text: '뭐야, 왜 불렀어? 할 말 있으면 해 봐.',
+      text: OPENINGS.battle,
       stage: 1, score: 0,
       persona: this.emotion.persona(1),
       voiceStage: 1, style: null,
@@ -64,7 +65,7 @@ export class BasicConversation {
   }
   reset() {}
   opening() {
-    return { text: '네! 무엇이든 말씀만 하십시오!', stage: 5, persona: { face: '🙇', label: '무조건 굴복' }, voiceStage: 5, style: 'grovel' };
+    return { text: OPENINGS.basic, stage: 5, persona: { face: '🙇', label: '무조건 굴복' }, voiceStage: 5, style: 'grovel' };
   }
   respond(userText) {
     const style = this.emotion.pickStyle(5);
