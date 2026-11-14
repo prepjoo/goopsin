@@ -26,8 +26,7 @@ button { font: inherit; cursor: pointer; }
 
 /* ---------- 메인 ---------- */
 .brand { text-align: center; margin-top: 18px; }
-.logo { font-size: 72px; line-height: 1; animation: bow 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
-@keyframes bow { 0%, 60%, 100% { transform: rotate(0); } 75% { transform: rotate(-14deg); } 85% { transform: rotate(4deg); } }
+.logo { width: 132px; height: 132px; margin: 0 auto; }
 .brand h1 { font-size: 56px; margin: 8px 0 0; letter-spacing: -2px; color: var(--orange-d); font-weight: 900; }
 .brand-en { margin: 0; font-weight: 800; letter-spacing: 6px; color: var(--muted); font-size: 14px; }
 .brand-desc { margin: 8px 0 0; font-size: 17px; font-weight: 600; }
@@ -57,13 +56,48 @@ button { font: inherit; cursor: pointer; }
 .end-btn { border: 0; background: #ffe1e1; color: var(--red); border-radius: 999px; padding: 10px 16px; font-weight: 800; }
 
 .character { text-align: center; margin: 14px 0 4px; }
-.char-face { font-size: 96px; line-height: 1.1; transition: transform .25s; }
-.char-face.pop { animation: pop .35s ease; }
-.char-face.shake { animation: shake .45s ease; }
-.char-face.speaking { animation: talk .5s ease-in-out infinite; }
-@keyframes pop { 50% { transform: scale(1.18); } }
-@keyframes shake { 20%,60% { transform: translateX(-8px) rotate(-6deg); } 40%,80% { transform: translateX(8px) rotate(6deg); } }
-@keyframes talk { 50% { transform: scaleY(.94) translateY(3px); } }
+.char-face { width: 172px; height: 172px; margin: 0 auto; }
+
+/* ---------- 캐릭터 굽신이 ---------- */
+.goop { width: 100%; height: 100%; display: block; overflow: visible; }
+.goop * { transform-box: view-box; }
+.goop .g-figure { transform-origin: 100px 178px; transition: transform .5s cubic-bezier(.3,1.5,.5,1); }
+.goop .g-face, .goop .g-pupil, .goop .g-lid, .goop .g-brow, .goop .g-eye, .goop .g-hand { transition: transform .35s cubic-bezier(.3,1.4,.5,1); }
+.goop .g-tuft { transform-origin: 100px 44px; transition: transform .6s cubic-bezier(.3,1.6,.5,1); }
+.goop .g-mouth { transition: d .3s ease; }
+.goop .g-pupil-c { transition: r .3s ease; }
+.goop .g-blush { transition: opacity .4s; }
+.goop .g-mouth-wrap { transform-origin: 100px 122px; }
+.goop .g-extra { opacity: 0; transition: opacity .3s; }
+.goop .g-extra.on { opacity: 1; }
+.goop .g-sweat.on, .goop .g-sweat2.on { animation: g-drip 1.4s ease-in infinite; }
+.goop .g-sweat2.on { animation-delay: .5s; }
+.goop .g-streams.on { animation: g-stream .5s linear infinite alternate; }
+.goop .g-anger { transform-origin: 146px 58px; }
+.goop .g-anger.on { animation: g-throb .6s ease-in-out infinite; }
+.goop .g-closed { opacity: 0; transition: opacity .2s; }
+.goop .g-open { transition: opacity .2s; }
+.goop .is-closed-down .g-open, .goop .is-closed-up .g-open { opacity: 0; }
+.goop .is-closed-down .g-closed-down, .goop .is-closed-up .g-closed-up { opacity: 1; }
+.speaking .g-mouth-wrap { animation: g-talk .26s ease-in-out infinite alternate; }
+[data-hands="rub"] .g-handL > circle { animation: g-rub .22s ease-in-out infinite alternate; }
+[data-hands="rub"] .g-handR > circle { animation: g-rub .22s ease-in-out infinite alternate-reverse; }
+[data-hands="up"] .g-hand > circle { animation: g-wave .14s ease-in-out infinite alternate; }
+[data-hands="fidget"] .g-handL > circle { animation: g-rub .5s ease-in-out infinite alternate; }
+[data-expr="timid"] .goop, [data-expr="sob"] .goop { animation: g-tremble .16s linear infinite alternate; }
+[data-expr="panic"] .goop { animation: g-tremble .07s linear infinite alternate; }
+.react-up .goop { animation: g-flinch .45s ease; }
+.react-down .goop { animation: g-puff .45s ease; }
+@keyframes g-talk { from { transform: scaleY(.45); } to { transform: scaleY(1.15); } }
+@keyframes g-drip { 0% { transform: translateY(-4px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
+@keyframes g-stream { from { transform: translateY(0); } to { transform: translateY(3px); } }
+@keyframes g-throb { 50% { transform: scale(1.25); } }
+@keyframes g-rub { from { transform: translateY(-3px); } to { transform: translateY(3px); } }
+@keyframes g-wave { from { transform: translate(-2px, -2px); } to { transform: translate(2px, 2px); } }
+@keyframes g-tremble { from { transform: translateX(-1.2px); } to { transform: translateX(1.2px); } }
+@keyframes g-flinch { 20%,60% { transform: translateX(-7px) rotate(-4deg); } 40%,80% { transform: translateX(7px) rotate(4deg); } }
+@keyframes g-puff { 50% { transform: scale(1.12) translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .goop, .goop * { animation: none !important; } }
 .char-state { font-weight: 900; font-size: 20px; }
 
 .gauge-wrap { background: var(--card); border-radius: 16px; padding: 12px 14px; margin: 10px 0; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
@@ -89,6 +123,7 @@ button { font: inherit; cursor: pointer; }
 .mic-btn { width: 108px; height: 108px; border-radius: 50%; border: 0; background: var(--orange); box-shadow: 0 6px 0 var(--orange-d); font-size: 46px; transition: transform .08s; }
 .mic-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--orange-d); }
 .mic-btn.listening { background: var(--red); box-shadow: 0 0 0 0 rgba(229,56,59,.6); animation: pulse 1.2s infinite; }
+.mic-btn.paused { background: #8d7b6c; box-shadow: 0 6px 0 #6f5f52; }
 .mic-btn.busy { background: #c9b8a6; box-shadow: 0 6px 0 #a8968a; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(229,56,59,.55); } 100% { box-shadow: 0 0 0 26px rgba(229,56,59,0); } }
 .text-form { display: flex; gap: 8px; width: 100%; }
