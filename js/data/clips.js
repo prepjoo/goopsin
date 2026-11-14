@@ -53,3 +53,53 @@ export const CLIP_GROUPS = GROUPS;
 
 /** 대사 → 파일 ID (같은 대사는 같은 파일을 공유. 예: 기본 굴복 모드 사죄 = 5단계 비굴 대사) */
 export const CLIP_ID_BY_TEXT = Object.fromEntries(CLIPS.map((c) => [c.text, c.id]));
+
+// ---------------- 되받아치기 녹음 문장 (빈칸을 채운 완성 문장) ----------------
+import { ADVERB_RETORTS, TOPICS } from './retorts.js';
+
+const fillTpl = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+
+/** 녹음하는 빈도부사 5종 (그 외 빈도부사는 기기 내장 음성) */
+export const RECORDED_ADVERBS = [
+  { key: 'mannal', say: '맨날' },
+  { key: 'hangsang', say: '항상' },
+  { key: 'tto', say: '또' },
+  { key: 'maebeon', say: '매번' },
+  { key: 'jakku', say: '자꾸' },
+];
+
+const STAGE_DIRECTION = {
+  1: GROUPS.find((g) => g.prefix === 's1'),
+  2: GROUPS.find((g) => g.prefix === 's2'),
+  3: GROUPS.find((g) => g.prefix === 's3'),
+  4: GROUPS.find((g) => g.prefix === 's4'),
+  5: GROUPS.find((g) => g.prefix === 's5_panic'),
+};
+
+/** 빈도부사 되받아치기: 5종 × 단계별 대사 = 70문장 */
+export const ADVERB_CLIPS = RECORDED_ADVERBS.flatMap((a) =>
+  [1, 2, 3, 4, 5].flatMap((s) =>
+    ADVERB_RETORTS[s].map((tpl, i) => ({
+      id: `adv_${a.key}_s${s}_${pad(i + 1)}`,
+      text: fillTpl(tpl, { say: a.say, adv: a.say }),
+      group: { label: `빈도부사 "${a.say}" · ${s}단계`, direction: STAGE_DIRECTION[s].direction, typecast: STAGE_DIRECTION[s].typecast },
+    }))
+  )
+);
+
+/** 주제 핑계(1~2단계): 주제 9종 × 2 = 18문장. 주제어는 대표 단어로 녹음 */
+const TOPIC_KEYS = [
+  ['late', '늦은 거'], ['promise', '약속'], ['contact', '연락'], ['lie', '거짓말'], ['money', '돈'],
+  ['chore', '설거지'], ['game', '게임'], ['drink', '술'], ['study', '숙제'],
+];
+export const TOPIC_CLIPS = TOPICS.flatMap((t, ti) =>
+  t.excuses.map((tpl, i) => ({
+    id: `tp_${TOPIC_KEYS[ti][0]}_${pad(i + 1)}`,
+    text: fillTpl(tpl, { t: TOPIC_KEYS[ti][1] }),
+    group: { label: `주제 핑계 · ${TOPIC_KEYS[ti][1]}`, direction: '뻔뻔하게 핑계 대듯, 능청스럽고 빠르게', typecast: { emotion: 'toneup', intensity: 1.2, tempo: 1.1, pitch: 0 } },
+  }))
+);
+
+/** 녹음 대상 전체 (기본 대사 + 되받아치기) : 한꺼번에 녹음할 때의 순서 */
+export const ALL_CLIPS = [...CLIPS, ...ADVERB_CLIPS, ...TOPIC_CLIPS];
+for (const c of [...ADVERB_CLIPS, ...TOPIC_CLIPS]) CLIP_ID_BY_TEXT[c.text] = c.id;

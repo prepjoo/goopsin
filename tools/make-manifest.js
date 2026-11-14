@@ -1,6 +1,6 @@
 // audio 폴더의 mp3 파일 목록으로 audio/manifest.json 생성: node tools/make-manifest.js
 import { readdirSync, writeFileSync } from 'node:fs';
-import { CLIPS } from '../js/data/clips.js';
+import { ALL_CLIPS as CLIPS } from '../js/data/clips.js';
 const files = new Set(readdirSync('audio').filter((f) => f.endsWith('.mp3')).map((f) => f.slice(0, -4)));
 const known = CLIPS.map((c) => c.id);
 const ids = known.filter((id) => files.has(id));
