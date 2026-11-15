@@ -60,7 +60,7 @@ const SVG = `
     <clipPath id="g-eyeR"><ellipse cx="122" cy="92" rx="11" ry="13"/></clipPath>
   </defs>
   <ellipse class="g-shadow" cx="100" cy="184" rx="52" ry="7" fill="#000" opacity=".12"/>
-  <g class="g-figure">
+  <g class="g-breath"><g class="g-figure">
     <g class="g-tuft">
       <path d="M100 44 C98 30 104 20 114 16 C113 28 108 38 100 44 Z" fill="#6cc04a"/>
       <path d="M100 44 C97 34 90 27 81 26 C84 36 91 42 100 44 Z" fill="#8ad65c"/>
@@ -74,7 +74,7 @@ const SVG = `
         const cx = s === 'L' ? 78 : 122;
         return `
       <g class="g-eye g-eye${s}" style="transform-origin:${cx}px 92px">
-        <g class="g-open">
+        <g class="g-open" style="transform-origin:${cx}px 92px">
           <ellipse cx="${cx}" cy="92" rx="11" ry="13" fill="#fff"/>
           <g clip-path="url(#g-eye${s})">
             <g class="g-pupil"><circle class="g-pupil-c" cx="${cx}" cy="93" r="5.5" fill="${INK}"/><circle cx="${cx + 2}" cy="90.5" r="1.8" fill="#fff"/></g>
@@ -99,7 +99,7 @@ const SVG = `
     </g>
     <g class="g-hand g-handL"><circle r="11" fill="#ffb35c" stroke="#e86a10" stroke-width="2.5"/></g>
     <g class="g-hand g-handR"><circle r="11" fill="#ffb35c" stroke="#e86a10" stroke-width="2.5"/></g>
-  </g>
+  </g></g>
 </svg>`;
 
 let instanceCount = 0;
@@ -164,6 +164,23 @@ export class Character {
     const sx = puff * (1 + 0.08 * s * s);
     this.q('.g-figure').style.transform = `rotate(${e.tilt}deg) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
     this.q('.g-face').style.transform = `translateY(${(14 * s * s).toFixed(1)}px)`;
+  }
+
+  /** 듣는 중: 귀 기울이듯 살짝 기울인다 */
+  setListening(on) { this.el.classList.toggle('listening', Boolean(on)); }
+
+  /** 현재 표정을 그림 파일로 쓸 수 있는 SVG 문자열로 내보낸다 (결과 카드용) */
+  toImageSVG(size = 400) {
+    const svg = this.q('svg').cloneNode(true);
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('width', size); svg.setAttribute('height', size);
+    const st = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    st.textContent = `*{transform-box:view-box}.g-figure{transform-origin:100px 178px}.g-tuft{transform-origin:100px 44px}
+      .g-extra{opacity:0}.g-extra.on{opacity:1}.g-closed{opacity:0}
+      .is-closed-down .g-open,.is-closed-up .g-open{opacity:0}
+      .is-closed-down .g-closed-down,.is-closed-up .g-closed-up{opacity:1}`;
+    svg.insertBefore(st, svg.firstChild);
+    return new XMLSerializer().serializeToString(svg);
   }
 
   setSpeaking(on) { this.el.classList.toggle('speaking', Boolean(on)); }

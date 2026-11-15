@@ -196,3 +196,24 @@ test('되받아치기: 주제어와 말 되받기, 욕설은 따라 하지 않�
     assert.ok(!/바보|멍청|미친/.test(t), t);
   }
 });
+
+test('결과 요약: 최고 단계·걸린 시간·가장 많이 쓴 말·칭호', async () => {
+  const { SessionStats, fmtTime } = await import('../js/engine/SessionStats.js');
+  const s = new SessionStats('battle', T0);
+  const c = new BattleConversation({ maxStage: 5 });
+  let t = T0;
+  for (let i = 0; i < 8; i++) { t += 5000; s.record(c.respond('너 맨날 왜 그래! 똑바로 사과해!', t), t); }
+  t += 5000; s.record(c.respond('그래, 알았어. 그만하자.', t), t);
+  const r = s.summary(t);
+  assert.equal(r.peakStage, 5);
+  assert.equal(r.topWord.word, '맨날');
+  assert.equal(r.topWord.count, 8);
+  assert.equal(r.rebounds, 1);
+  assert.equal(r.title, '전설의 호통왕');
+  assert.match(r.headline, /만에 완전 굴복!/);
+  assert.equal(fmtTime(134), '2분 14초');
+  const b = new SessionStats('basic', T0); b.record({ stage: 5 }, T0 + 1000);
+  assert.match(b.summary(T0 + 3000).headline, /사죄 1번/);
+  const quiet = new SessionStats('battle', T0); quiet.record({ stage: 1 }, T0 + 1000);
+  assert.equal(quiet.summary(T0 + 2000).expression, 'cocky');
+});

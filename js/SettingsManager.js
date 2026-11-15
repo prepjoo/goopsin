@@ -6,6 +6,8 @@ export const DEFAULT_SETTINGS = {
   rate: 1.0,         // 단계별 속도에 곱해지는 배율
   pitch: 1.0,        // 단계별 음높이에 곱해지는 배율
   autoListen: true,  // AI가 말한 뒤 자동으로 다시 듣기
+  sfx: true,         // 효과음과 진동
+  seenGuide: false,  // 처음 사용 안내를 봤는지
   fullStages: false, // 5단계 전체 미리보기 (무료 버전 기본은 3단계)
 };
 
