@@ -1,6 +1,7 @@
 // 굽신 앱 진입점: 화면, 음성 입출력, 엔진 연결
 import { SettingsManager } from './SettingsManager.js';
 import { ModeManager } from './ModeManager.js';
+import { PERSONAS, PERSONA_ORDER } from './data/personas.js';
 import { createVoiceInput } from './voice/SpeechRecognition.js';
 import { createSpeechOutput } from './voice/SpeechOutput.js';
 import { ClipSpeechOutput } from './voice/ClipSpeechOutput.js';
@@ -68,6 +69,20 @@ function show(screenId) {
   window.scrollTo(0, 0);
 }
 
+// 캐릭터 선택 카드 (작은 굽신이 얼굴 포함)
+const pickEl = $('persona-list');
+if (pickEl) {
+  for (const key of PERSONA_ORDER) {
+    const p = PERSONAS[key];
+    const b = document.createElement('button');
+    b.className = `persona-card p-${key}`;
+    b.dataset.mode = key;
+    b.innerHTML = `<span class="p-face"></span><span class="p-name">${p.name}</span><span class="p-level">${p.level}</span><span class="p-sub">${p.sub}</span>`;
+    pickEl.appendChild(b);
+    new Character(b.querySelector('.p-face')).set(p.face);
+  }
+}
+
 document.querySelectorAll('[data-mode]').forEach((btn) =>
   btn.addEventListener('click', () => { history.pushState({ talk: true }, ''); startMode(btn.dataset.mode); })
 );
@@ -76,7 +91,7 @@ function startMode(mode) {
   sessionId++;
   lastMode = mode;
   const info = modes.start(mode);
-  stats = new SessionStats(mode);
+  stats = new SessionStats(info.showGauge ? 'battle' : 'basic', Date.now(), `${info.name} (${info.level})`);
   $('talk-mode-label').textContent = info.label;
   $('gauge-wrap').hidden = !info.showGauge;
   logEl.textContent = '';
@@ -85,7 +100,7 @@ function startMode(mode) {
   handsFree = Boolean(settings.get('autoListen')) && stt.isSupported;
   quickFails = 0;
   const first = modes.conversation.opening();
-  setGauge(0, 1);
+  setGauge(first.score || 0, first.stage || 1);
   render(first, true);
   speakTurn(first);
   if (!stt.isSupported) setStatus('음성 인식 미지원 브라우저예요. 아래 입력창에 써 주세요.');
@@ -151,7 +166,7 @@ function render(turn, isOpening = false) {
   $('char-state').textContent = turn.persona.label;
   const talk = $('screen-talk');
   talk.dataset.stage = String(turn.stage);
-  if (typeof turn.score === 'number' && modes.mode === 'battle') setGauge(turn.score, turn.stage, turn.direction);
+  if (typeof turn.score === 'number' && modes.info && modes.info.showGauge) setGauge(turn.score, turn.stage, turn.direction);
   if (isOpening) return;
   if (turn.direction === 'up') {
     const top = turn.stage >= 5;

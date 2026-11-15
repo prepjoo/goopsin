@@ -23,6 +23,9 @@ export const DEFAULTS = {
   neutralDrift: -3,          // 중립 발화는 살짝 기세 회복
   endReboundRatio: 0.7,      // 굴복 상태(40점+)에서 '그만하자/용서할게' 류 → 현재 점수의 70%를 한 번에 회복(반전)
   endReboundMax: 75,
+  gain: 1,                   // 캐릭터별: 야단맞을 때 점수가 오르는 배율
+  softGain: 1,               // 캐릭터별: 부드러운 말에 기세를 회복하는 배율
+  startScore: 0,             // 캐릭터별: 시작 점수
 };
 
 export function rawStage(score) {
@@ -50,8 +53,8 @@ export class SubmissionEngine {
   }
 
   reset() {
-    this.score = 0;
-    this.stage = 1;
+    this.score = Math.min(this.opts.startScore || 0, this.maxScore);
+    this.stage = Math.min(rawStage(this.score), this.opts.maxStage);
     this.pressureStreak = 0;
     this.calmStreak = 0;
     this.lastAt = null;
@@ -94,7 +97,7 @@ export class SubmissionEngine {
     } else if (analysis.kind === 'soft' || analysis.kind === 'end') {
       this.calmStreak++;
       this.pressureStreak = 0;
-      delta *= 1 + Math.min(this.calmStreak - 1, 2) * 0.2;
+      delta *= (1 + Math.min(this.calmStreak - 1, 2) * 0.2) * this.opts.softGain;
     } else {
       // 중립: 압박이 끊기면 서서히 기세 회복
       this.pressureStreak = 0;
@@ -110,6 +113,8 @@ export class SubmissionEngine {
       maxDown = this.opts.endReboundMax;
     }
     delta = clamp(delta, -maxDown, this.opts.maxUpPerTurn);
+    // 캐릭터별 버티는 정도: 잘 버티는 캐릭터는 한 번에 덜 오른다
+    if (delta > 0) delta *= this.opts.gain;
     this.score = clamp(Math.round(prevScore + delta), 0, this.maxScore);
 
     let next = this._stableStage(this.score, prevStage, false);

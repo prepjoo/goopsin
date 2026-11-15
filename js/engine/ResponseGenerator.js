@@ -24,8 +24,9 @@ export class PoolPicker {
 }
 
 export class ResponseGenerator {
-  constructor({ rng = Math.random } = {}) {
+  constructor({ rng = Math.random, persona = null } = {}) {
     this.rng = rng;
+    this.persona = persona;
     this.picker = new PoolPicker(rng, 4);
     this.capCount = 0;
     this.retort = new RetortGenerator({ rng, pick: (pool) => this.picker.pick(pool) });
@@ -53,6 +54,12 @@ export class ResponseGenerator {
     // 크게 반전(2단계 이상 하락): "뭐야? 벌써 끝내는 거야?" 류의 기세등등 대사
     if (direction === 'down' && prevStage - stage >= 2) {
       return this.picker.pick(REBOUND_LINES[1]);
+    }
+    // 캐릭터 전용 대사 (무례한의 건성 사과, 깐족이의 비꼬는 사과 등)
+    const own = this.persona && this.persona.lines && this.persona.lines[stage];
+    if (own && own.length && kind === 'pressure' && direction !== 'down' && this.rng() < 0.6) {
+      this.lastType = 'persona';
+      return this.picker.pick(own);
     }
     // 사용자 말 속 단어 짚어서 되받아치기 (빈도부사 > 주제어 > 말 되받기)
     const retort = this.retort.generate(stage, cues, kind);
@@ -82,8 +89,9 @@ export class ResponseGenerator {
 }
 
 /** 시작 첫 마디: 빈정거리며 먼저 말 걸기 */
-export function pickOpening(rng = Math.random) {
-  return OPENING_LINES[Math.floor(rng() * OPENING_LINES.length)];
+export function pickOpening(rng = Math.random, pool = null) {
+  if (!pool || !pool.length) pool = OPENING_LINES;
+  return pool[Math.floor(rng() * pool.length)];
 }
 
 /** 기본 굴복 모드용: 무조건 사죄 (직전 문구는 반복하지 않음) */

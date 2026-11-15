@@ -100,6 +100,21 @@ export const TOPIC_CLIPS = TOPICS.flatMap((t, ti) =>
   }))
 );
 
-/** 녹음 대상 전체 (기본 대사 + 되받아치기) : 한꺼번에 녹음할 때의 순서 */
-export const ALL_CLIPS = [...CLIPS, ...ADVERB_CLIPS, ...TOPIC_CLIPS];
-for (const c of [...ADVERB_CLIPS, ...TOPIC_CLIPS]) CLIP_ID_BY_TEXT[c.text] = c.id;
+import { personaExtraLines } from './personas.js';
+
+const PERSONA_DIRECTION = {
+  rude: '퉁명스럽고 무례하게. 사과도 건성으로, 귀찮다는 듯',
+  teaser: '얄밉게 깐족대며. 말끝을 늘려 비꼬는 사과',
+  humble: '공손하고 조심스럽게. 눈치 보며 작게',
+};
+/** 캐릭터 전용 대사 (첫 마디·건성 사과·비꼬는 사과) */
+const counters = {};
+export const PERSONA_CLIPS = personaExtraLines().map(({ persona, text }) => {
+  counters[persona.key] = (counters[persona.key] || 0) + 1;
+  return { id: `pc_${persona.key}_${pad(counters[persona.key])}`, text,
+    group: { label: `캐릭터 전용 · ${persona.name}`, direction: PERSONA_DIRECTION[persona.key], typecast: { emotion: 'normal', intensity: 1, tempo: 1, pitch: 0 } } };
+});
+
+/** 녹음 대상 전체 (기본 대사 + 되받아치기 + 캐릭터 전용) : 한꺼번에 녹음할 때의 순서. 새 대사는 항상 맨 끝에 추가 */
+export const ALL_CLIPS = [...CLIPS, ...ADVERB_CLIPS, ...TOPIC_CLIPS, ...PERSONA_CLIPS];
+for (const c of [...ADVERB_CLIPS, ...TOPIC_CLIPS, ...PERSONA_CLIPS]) CLIP_ID_BY_TEXT[c.text] = c.id;

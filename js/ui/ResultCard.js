@@ -54,6 +54,7 @@ export async function drawResultCard(canvas, sum, charSvg) {
 
   // 기록
   const rows = [];
+  if (sum.opponent) rows.push(['상대', sum.opponent]);
   if (sum.mode === 'battle') {
     rows.push(['최고 굴복 단계', `${sum.peakStage}단계`]);
     rows.push(['주고받은 말', `${sum.turns}번`]);
@@ -64,16 +65,16 @@ export async function drawResultCard(canvas, sum, charSvg) {
     rows.push(['받아낸 사죄', `${sum.turns}번`]);
     rows.push(['대화 시간', fmtTime(sum.durationSec)]);
   }
-  let y = 880;
+  let y = 858;
   for (const [k, v] of rows.slice(0, 4)) {
-    c.fillStyle = '#fff'; rr(c, 130, y, W - 260, 78, 24); c.fill();
-    c.textAlign = 'left'; c.fillStyle = '#7a6656'; c.font = `700 34px ${FONT}`; c.fillText(k, 165, y + 52);
-    c.textAlign = 'right'; c.fillStyle = '#2b1d14'; c.font = `900 38px ${FONT}`; c.fillText(v, W - 165, y + 53);
-    y += 92;
+    c.fillStyle = '#fff'; rr(c, 130, y, W - 260, 74, 24); c.fill();
+    c.textAlign = 'left'; c.fillStyle = '#7a6656'; c.font = `700 34px ${FONT}`; c.fillText(k, 165, y + 50);
+    c.textAlign = 'right'; c.fillStyle = '#2b1d14'; c.font = `900 38px ${FONT}`; c.fillText(v, W - 165, y + 51);
+    y += 86;
   }
 
   c.textAlign = 'center';
-  c.fillStyle = '#e05e00'; c.font = `900 36px ${FONT}`; c.fillText('욕은 마음껏, 사죄는 무조건!', W / 2, H - 100);
+  c.fillStyle = '#e05e00'; c.font = `900 36px ${FONT}`; c.fillText('욕은 마음껏, 사죄는 무조건!', W / 2, H - 92);
   return canvas;
 }
 

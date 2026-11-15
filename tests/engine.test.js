@@ -217,3 +217,30 @@ test('결과 요약: 최고 단계·걸린 시간·가장 많이 쓴 말·칭호
   const quiet = new SessionStats('battle', T0); quiet.record({ stage: 1 }, T0 + 1000);
   assert.equal(quiet.summary(T0 + 2000).expression, 'cocky');
 });
+
+test('캐릭터: 무례한은 버티고 겸손이는 금방 수그러들지만, 끝까지 몰면 모두 5단계', async () => {
+  const { PERSONAS } = await import('../js/data/personas.js');
+  const turnsTo5 = (key) => {
+    const c = new BattleConversation({ maxStage: 5, persona: PERSONAS[key], rng: () => 0.9 });
+    let t = T0;
+    for (let i = 1; i <= 30; i++) if (c.respond('말대꾸하지 마! 똑바로 사과해!', (t += 3000)).stage === 5) return i;
+    return Infinity;
+  };
+  const [r, m, h] = ['rude', 'teaser', 'humble'].map(turnsTo5);
+  assert.ok(r > m && m > h, `무례한 ${r} > 깐족이 ${m} > 겸손이 ${h}`);
+  assert.ok(r < 20);
+  const hc = new BattleConversation({ maxStage: 5, persona: PERSONAS.humble });
+  assert.equal(hc.opening().stage, 2);
+  assert.ok(PERSONAS.humble.openings.includes(hc.opening().text));
+});
+
+test('캐릭터: 전용 대사(건성·비꼬는 사과)는 중간 단계에서만, 5단계는 진짜 사죄', async () => {
+  const { PERSONAS } = await import('../js/data/personas.js');
+  const { STAGE_LINES } = await import('../js/data/lines.js');
+  const c = new BattleConversation({ maxStage: 5, persona: PERSONAS.teaser, rng: () => 0.2 });
+  let t = T0; const seen = [];
+  for (let i = 0; i < 20; i++) seen.push(c.respond('아직도 정신 못 차렸어? 무릎 꿇어!', (t += 3000)));
+  assert.ok(seen.some((x) => x.responseType === 'persona' && x.stage === 3));
+  const all5 = Object.values(STAGE_LINES[5]).flat();
+  for (const x of seen.filter((y) => y.stage === 5)) assert.ok(x.responseType !== 'persona' && (all5.includes(x.text) || x.responseType !== 'line'), x.text);
+});

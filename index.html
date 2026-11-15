@@ -10,7 +10,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="css/style.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=9" />
 </head>
 <body>
   <!-- ===================== 메인 화면 ===================== -->
@@ -25,23 +25,9 @@
       <p class="brand-desc">AI가 굽신대는 사과 앱</p>
     </header>
 
-    <section class="mode-buttons" aria-label="모드 선택">
-      <button class="mode-btn mode-battle" data-mode="battle">
-        <span class="mode-emoji" aria-hidden="true">🥊</span>
-        <span class="mode-text">
-          <span class="mode-name">AI 대결 모드</span>
-          <span class="mode-sub">대들다가… 결국 굽신</span>
-        </span>
-        <span class="mode-go" aria-hidden="true">›</span>
-      </button>
-      <button class="mode-btn mode-basic" data-mode="basic">
-        <span class="mode-emoji" aria-hidden="true">🙏</span>
-        <span class="mode-text">
-          <span class="mode-name">기본 굴복 모드</span>
-          <span class="mode-sub">무슨 말을 해도 무조건 사죄</span>
-        </span>
-        <span class="mode-go" aria-hidden="true">›</span>
-      </button>
+    <section class="persona-pick" aria-label="상대 고르기">
+      <h2 class="pick-title">누구를 혼내 볼까요?</h2>
+      <div id="persona-list" class="persona-list"></div>
     </section>
 
     <footer class="home-footer">
@@ -167,6 +153,6 @@
       window.addEventListener('unhandledrejection', function (e) { show(String(e.reason && e.reason.message || e.reason)); });
     })();
   </script>
-  <script type="module" src="js/app.js?v=8"></script>
+  <script type="module" src="js/app.js?v=9"></script>
 </body>
 </html>

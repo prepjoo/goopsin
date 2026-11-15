@@ -12,10 +12,11 @@ import { EmotionEngine } from './EmotionEngine.js';
 import { STAGES } from '../data/lines.js';
 
 export class BattleConversation {
-  constructor({ maxStage = 3, rng = Math.random, analyzer = analyze } = {}) {
+  constructor({ maxStage = 3, rng = Math.random, analyzer = analyze, persona = null } = {}) {
+    this.persona = persona;
     this.analyzer = analyzer; // 추후 AI API 기반 분석기로 교체 가능
-    this.submission = new SubmissionEngine({ maxStage });
-    this.responder = new ResponseGenerator({ rng });
+    this.submission = new SubmissionEngine({ maxStage, ...(persona ? { gain: persona.gain, softGain: persona.softGain, startScore: persona.startScore } : {}) });
+    this.responder = new ResponseGenerator({ rng, persona });
     this.emotion = new EmotionEngine({ rng });
     this.history = [];
     this.rng = rng;
@@ -30,11 +31,13 @@ export class BattleConversation {
 
   /** 대화 시작 시 AI가 먼저 빈정거리며 말을 건다 */
   opening() {
+    const p = this.persona;
+    const stage = this.submission.stage;
     return {
-      text: pickOpening(this.rng),
-      stage: 1, score: 0,
-      persona: { face: '😏', label: '빈정빈정' },
-      voiceStage: 1, style: null,
+      text: pickOpening(this.rng, p && p.openings),
+      stage, score: this.submission.score,
+      persona: stage === 1 ? { face: '😏', label: p && p.key === 'rude' ? '시큰둥' : '빈정빈정' } : this.emotion.persona(stage),
+      voiceStage: (p && p.openingVoice) || 1, style: null,
     };
   }
 
@@ -54,7 +57,7 @@ export class BattleConversation {
       style,
       stageName: STAGES[state.stage].name,
       persona: this.emotion.persona(state.stage, style),
-      voiceStage: state.stage,
+      voiceStage: type === 'persona' && this.persona.voice[state.stage] ? this.persona.voice[state.stage] : state.stage,
     };
     this.history.push(turn);
     if (this.history.length > 20) this.history.shift();

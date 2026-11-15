@@ -3,8 +3,9 @@
  * (UI와 분리된 순수 로직이라 Node에서 테스트할 수 있다.)
  */
 export class SessionStats {
-  constructor(mode, now = Date.now()) {
+  constructor(mode, now = Date.now(), opponent = null) {
     this.mode = mode;
+    this.opponent = opponent; // 상대 캐릭터 이름
     this.startedAt = now;
     this.turns = 0;
     this.peakStage = 1;
@@ -27,7 +28,7 @@ export class SessionStats {
     const durationSec = Math.max(1, Math.round((now - this.startedAt) / 1000));
     const toPeakSec = Math.max(1, Math.round((this.peakAt - this.startedAt) / 1000));
     const top = Object.entries(this.words).sort((a, b) => b[1] - a[1])[0] || null;
-    const base = { mode: this.mode, turns: this.turns, durationSec, toPeakSec, peakStage: this.peakStage, peakStyle: this.peakStyle, rebounds: this.rebounds, topWord: top ? { word: top[0], count: top[1] } : null };
+    const base = { mode: this.mode, opponent: this.opponent, turns: this.turns, durationSec, toPeakSec, peakStage: this.peakStage, peakStyle: this.peakStyle, rebounds: this.rebounds, topWord: top ? { word: top[0], count: top[1] } : null };
     if (this.mode === 'basic') {
       return { ...base, headline: `사죄 ${this.turns}번 받아냄!`, title: this.turns >= 10 ? '사죄 수집가' : this.turns >= 5 ? '호통 좀 치는 편' : '가볍게 한마디', expression: 'grovel' };
     }

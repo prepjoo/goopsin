@@ -1,35 +1,37 @@
-// ModeManager: 모드(기본 굴복 / AI 대결)와 화면 전환 관리
+// ModeManager: 캐릭터(무례한·깐족이·겸손이·굽신이)와 대화 엔진 관리
 import { BattleConversation, BasicConversation } from './engine/ConversationEngine.js';
-
-export const MODES = {
-  basic: { label: '기본 굴복 모드', showGauge: false },
-  battle: { label: 'AI 대결 모드', showGauge: true },
-};
+import { PERSONAS } from './data/personas.js';
 
 export class ModeManager {
   constructor(settings) {
     this.settings = settings;
     this.mode = null;
+    this.info = null;
     this.conversation = null;
   }
 
   get maxStage() { return this.settings.get('fullStages') ? 5 : 3; }
 
   start(mode) {
-    this.mode = mode;
-    this.conversation = mode === 'battle'
-      ? new BattleConversation({ maxStage: this.maxStage })
+    // 예전 주소·버튼 이름과의 호환
+    const key = mode === 'battle' ? 'teaser' : mode === 'basic' ? 'goopsin' : mode;
+    const p = PERSONAS[key] || PERSONAS.teaser;
+    this.mode = p.key;
+    this.info = { label: `${p.name} · ${p.level}`, name: p.name, level: p.level, showGauge: p.battle, persona: p };
+    this.conversation = p.battle
+      ? new BattleConversation({ maxStage: this.maxStage, persona: p })
       : new BasicConversation();
-    return MODES[mode];
+    return this.info;
   }
 
   refreshStageLimit() {
-    if (this.mode === 'battle') this.conversation.setMaxStage(this.maxStage);
+    if (this.info && this.info.showGauge) this.conversation.setMaxStage(this.maxStage);
   }
 
   end() {
     this.conversation?.reset();
     this.mode = null;
+    this.info = null;
     this.conversation = null;
   }
 }
